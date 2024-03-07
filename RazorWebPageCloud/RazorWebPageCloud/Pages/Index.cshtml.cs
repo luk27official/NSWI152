@@ -2,6 +2,8 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.Extensions.Logging;
+using DotNetEnv;
 
 namespace RazorWebPageCloud.Pages
 {
@@ -19,9 +21,29 @@ namespace RazorWebPageCloud.Pages
             Blobs = CreateClient().GetBlobs().ToList();
         }
 
-        // normally we would add this to the Azure cfg...
-        private const string AzureStorageConnectionString = "DefaultEndpointsProtocol=https;AccountName=............;EndpointSuffix=core.windows.net";
-        private const string AzureStorageContainerName = "...";
+        bool isDeployment = true;
+
+        private string getConnectionString()
+        {
+            if(!isDeployment)
+            {
+                // read the .env file
+                Env.Load();
+            }
+            
+            // read the env vars directly from Azure
+            return Environment.GetEnvironmentVariable("BLOB_STORAGE");
+        }
+
+        private string getContainerName()
+        {
+            if(!isDeployment)
+            {
+                Env.Load();
+            }
+
+            return Environment.GetEnvironmentVariable("BLOB_CONTAINER");
+        }
 
         public List<BlobItem>? Blobs { get; set; }
 
@@ -35,7 +57,9 @@ namespace RazorWebPageCloud.Pages
 
         private BlobContainerClient CreateClient()
         {
-            return new Azure.Storage.Blobs.BlobContainerClient(AzureStorageConnectionString, AzureStorageContainerName);
+            string connectionString = getConnectionString();
+            Console.WriteLine(connectionString);
+            return new Azure.Storage.Blobs.BlobContainerClient(getConnectionString(), getContainerName());
         }
     }
 }

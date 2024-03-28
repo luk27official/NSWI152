@@ -1,5 +1,9 @@
 var builder = WebApplication.CreateBuilder(args);
 
+// Add Application Insights
+// specify the key in APPLICATIONINSIGHTS_CONNECTION_STRING environment variable
+builder.Services.AddApplicationInsightsTelemetry();
+
 // Add services to the container.
 builder.Services.AddRazorPages();
 

@@ -21,23 +21,23 @@ namespace RazorWebPageCloud.Pages
             Blobs = CreateClient().GetBlobs().ToList();
         }
 
-        bool isDeployment = true;
+        bool isDeployment = false;
 
         private string getConnectionString()
         {
-            if(!isDeployment)
+            if (!isDeployment)
             {
                 // read the .env file
                 Env.Load();
             }
-            
+
             // read the env vars directly from Azure
             return Environment.GetEnvironmentVariable("BLOB_STORAGE");
         }
 
         private string getContainerName()
         {
-            if(!isDeployment)
+            if (!isDeployment)
             {
                 Env.Load();
             }
@@ -51,15 +51,17 @@ namespace RazorWebPageCloud.Pages
         {
             var blobClient = CreateClient().GetBlobClient(blobName);
             var contentType = blobClient.GetProperties().Value.ContentType;
-            var stream = blobClient.OpenRead(); // není tøeba øešit Dispose - stream nám uzavøe infrastruktura Razor Pages.
+            var stream = blobClient.OpenRead(); // nenï¿½ tï¿½eba ï¿½eï¿½it Dispose - stream nï¿½m uzavï¿½e infrastruktura Razor Pages.
             return new FileStreamResult(stream, contentType);
         }
 
         private BlobContainerClient CreateClient()
         {
             string connectionString = getConnectionString();
-            Console.WriteLine(connectionString);
             return new Azure.Storage.Blobs.BlobContainerClient(getConnectionString(), getContainerName());
+
+            // using Managed Identity
+            // return new Azure.Storage.Blobs.BlobContainerClient(new Uri("https://luk27storage.blob.core.windows.net/luk27storage-testcontainer"), new Azure.Identity.DefaultAzureCredential());
         }
     }
 }
